@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Bless Online - Worldmap</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="leaflet.css"/>
+	<style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body, #blessmap {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+	<div id="blessmap"></div>
+    <script src="leaflet.js"></script>
+	<script>
+		var map = L.map('blessmap', {
+			crs: L.CRS.Simple,
+			center: [-320, 320],
+			zoom: 1,
+			maxBounds: [[0,0],[-640,640]]
+		});
+		L.tileLayer('tiles/{z}/{x}_{y}.jpg',{minZoom:1, maxZoom: 5}).addTo(map);
+		
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', './monsters.json');
+		xhr.responseType = 'json';
+		xhr.onload = function() {
+			var monsterGroups = [];
+			for (var i in xhr.response) {
+				monsterGroups[i] = new L.layerGroup();
+				for (var m of xhr.response[i]) {
+					monsterGroups[i].addLayer(L.circle([m.x, m.y], {radius: m.radius}));
+				}
+			}
+			var elites = JSON.parse('{"10011":"Blue Moon Warg Boss","10014":"Callan Village Thief Boss","10018":"Wedgejaw Tree Gnawer Boss","11044":"Drysands Alliance Centurion","11054":"Cursed Ghost","11058":"Solar Knight","12023":"Roughclaw Boss Nurhata","12043":"Angrymane Elder","13010":"Restless Warrior","13018":"Third Eye Demon","13024":"Akabis\' Fragment","13027":"Dimensional Predator","14103":"Dry Wood Mushroom","15015":"Black Forest Primitive Giant","16000":"Javier","16016":"Dawnstar White-horned Deer","21011":"Blade Claw","21030":"Falcon Knight","21031":"Mirror\'s Knight","22038":"Bloody Stone","22049":"Boss Jores","23018":"Latios","23025":"Returned Murderer","23026":"Ghost Deer","24010":"Paddle-Horned Scarab","24106":"Black Nightmare Mushroom","24110":"Predator Garden Mantis","25000":"King Droptail Snake","25006":"Khsier","25015":"Wanted Man Swali","25016":"Wanted Man Cameo","26010":"Ahiad","26013":"Kuan","26019":"Damucha","26028":"Full Void Predator","26035":"Vernie","30007":"Smugglers Action Leader","30008":"Smugglers Deputy Boss","30009":"Red Masks Overseer","30010":"Ironjaw King Turtle","31023":"Toonhark","31024":"Gray Orc Chief Karzak","33112":"Flora","33118":"Host of Waking Eyes","33131":"Ahkman","34002":"White Eye","34007":"Rising Light","34012":"Shadow Knight","34016":"Acasha","34022":"Hashita","34023":"Melaka","35008":"Moonlight Breaker","35019":"Bugbear Boss","37010":"Forest Giant Abuta","37014":"Snowfox Salimtah","37018":"Rock-hill Bear","37024":"Sawtooth Queen Ant","37031":"Abukazin","38104":"Ironscale Basilisk","38107":"Azuroc","38110":"Hobgoblin Warden","40004":"Dryland Queen Ant","40015":"Mountain Hunter Leopard Alpha","40017":"Herbati Adjutant","40024":"Imperial Adjutant","41001":"Snow Leopard King Maharata","41005":"Mountain Lord Haratata","41039":"Cliff White Eagle","50040":"Boss Utarr","50046":"Awful Trash","50047":"Giant Jungle Rhino","50048":"Large-Winged Blue Dragonfly","50049":"Naga Leader","50050":"Fat Kingthorn Turtle","51013":"Troll Ogre Mage","51019":"Gray Tusk Mammoth","51023":"Golem of Gerin","51024":"Troll Ogre Chieftain","51025":"Red Mud Orc Chieftain Zeva","51026":"King Beak","52015":"Forest Keeper Aswir","52016":"Swiftfoot Goblin Chieftain Gharba","52017":"Shadow Moss Troll Chieftain","55013":"Bloodshed Weapon Zeetoria","55019":"Suspicious Plantation Overseer","55022":"Asfrid","55046":"Security Mini Chimera","55050":"Security Super Chimera","61004":"Redscream Harpy Leader","61017":"Tarok the Thunderfist Chieftain","61040":"Judith Rebel Army Captain","61041":"Mad Scientist Dirk","62027":"[Temp] Forest Keeper Gabarin","62028":"[Temp] Evil Dragon Commander Ezov","66003":"[Temp] Rigus Tribe Inspector","66009":"[Temp] Storm Trooper Captain Grayrock Stonespear","66051":"[Temp] Patu the Warrior","66052":"[Temp] Latos the Warrior","420013":"Twin-Headed Wyvern","420062":"Lord of the Abyss","420063":"Mistfin Wyvern","420064":"Earthshaker Wyvern","420065":"Vicious Elder Wyvern","420066":"Chunk of Hatred","600001":"Black-Footed Basilisk","600006":"Dawnstar King Lizard","600031":"Shahida","600034":"Revived Salima","600049":"Redwing Harpy Queen"}');
+			for (var el in elites) {
+				monsterGroups[el].eachLayer(function (layer) {
+					layer.bindPopup(elites[el]);
+				});
+				monsterGroups[el].addTo(map);
+			}
+		};
+		xhr.send();
+		
+		var popup = L.popup();
+		function convert(coord, x) {
+			nx = coord / (64/51);
+			nx += (x ? 255.0 : -255.0);
+			return Math.ceil(nx * 1000).toLocaleString();
+		}
+		function onMapClick(e) {
+			popup.setLatLng(e.latlng)
+				.setContent(`X: ${convert(e.latlng.lat, true)}, Y: ${convert(e.latlng.lng)}`)
+				.openOn(map);
+		}
+		map.on('click', onMapClick);
+	</script>
+</body>
+</html>
